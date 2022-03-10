@@ -37,6 +37,13 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     get_message = event.message.text
+
+    # Send To Line
+    reply = TextSendMessage(text=f"紀錄成功{text}")
+    #reply = TextSendMessage(text=f"成功記錄 : {m}月{d}日在{item}項目花費了{cost}元")
+    line_bot_api.reply_message(event.reply_token, reply)
+    
+    
     # ascess Google Sheet
     Json = 'liquid-streamer-343612-20f96166f6a8.json'  # Json 的單引號內容請改成妳剛剛下載的那個金鑰
     Url = ['https://spreadsheets.google.com/feeds']
@@ -46,10 +53,5 @@ def handle_message(event):
     # 開啟資料表及工作表
     Sheet = GoogleSheets.open_by_key('15z2LDV9Rr1c7QueeeKQZSWaylEieKo9YJA-vmHLVKNE')  # 這裡請輸入妳自己的試算表代號
     Sheets = Sheet.sheet1
-
-
-    # Send To Line
     Sheets.append_row([1,2,3,4])
-    reply = TextSendMessage(text=f"紀錄成功{text}")
-    #reply = TextSendMessage(text=f"成功記錄 : {m}月{d}日在{item}項目花費了{cost}元")
-    line_bot_api.reply_message(event.reply_token, reply)
+
