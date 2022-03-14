@@ -44,21 +44,6 @@ def handle_message(event):
     reply = TextSendMessage(text=f"{get_message}喵~")
     line_bot_api.reply_message(event.reply_token, reply)
     
-    # google sheet
-
-    Json = 'liquid-streamer-343612-20f96166f6a8.json' # Json 的單引號內容請改成妳剛剛下載的那個金鑰
-    Url = ['https://spreadsheets.google.com/feeds']
-    # 連結至資料表
-    Connect = SAC.from_json_keyfile_name(Json, Url)
-    GoogleSheets = gspread.authorize(Connect)
-    # 開啟資料表及工作表
-    Sheet = GoogleSheets.open_by_key('15z2LDV9Rr1c7QueeeKQZSWaylEieKo9YJA-vmHLVKNE') # 這裡請輸入妳自己的試算表代號
-    Sheets = Sheet.sheet1
-    # 寫入
-    if Sheets.get_all_values() == []:
-        dataTitle = ["消費日期", "消費項目", "消費金額"]
-        Sheets.append_row(dataTitle)
-    Sheets.append_row(get_message)
 @handler.add(FollowEvent)
 def Welcome(event):
     get_ID = event.source.userId
