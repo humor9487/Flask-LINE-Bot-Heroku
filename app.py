@@ -1,6 +1,11 @@
 import os
 from datetime import datetime
 
+
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials as SAC
+
+
 from flask import Flask, abort, request
 
 # https://github.com/line/line-bot-sdk-python
@@ -40,8 +45,6 @@ def handle_message(event):
     line_bot_api.reply_message(event.reply_token, reply)
     
     # google sheet
-    import gspread
-    from oauth2client.service_account import ServiceAccountCredentials as SAC
 
     Json = 'liquid-streamer-343612-20f96166f6a8.json' # Json 的單引號內容請改成妳剛剛下載的那個金鑰
     Url = ['https://spreadsheets.google.com/feeds']
@@ -55,6 +58,7 @@ def handle_message(event):
     if Sheets.get_all_values() == []:
         dataTitle = ["消費日期", "消費項目", "消費金額"]
         Sheets.append_row(dataTitle)
+    Sheets.append_row(get_message)
 @handler.add(FollowEvent)
 def Welcome(event):
     get_ID = event.source.userId
