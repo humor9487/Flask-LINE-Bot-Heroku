@@ -38,3 +38,10 @@ def handle_message(event):
     # Send To Line
     reply = TextSendMessage(text=f"{get_message}")
     line_bot_api.reply_message(event.reply_token, reply)
+@handler.add(FollowEvent)
+def Welcome(event):
+    get_ID = event.source.userId
+    
+    # Send Welcome Message
+    welcome = TextSendMessage(text=f"Welcome come on!!!")
+    line_bot_api.push_message(get_ID, welcome)
