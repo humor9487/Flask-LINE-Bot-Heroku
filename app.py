@@ -53,10 +53,10 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     get_message = event.message.text
-    Sheets.append_row(get_message)
+    Sheets.append_row(get_message.split())
 
     # Send To Line
-    reply = TextSendMessage(text=f"{get_message}喵~")
+    reply = TextSendMessage(text=f"已記錄 : {get_message}")
     line_bot_api.reply_message(event.reply_token, reply)
     
 @handler.add(FollowEvent)
