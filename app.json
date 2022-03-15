@@ -1,5 +1,5 @@
 {
-    "name": "echo bot - LINE Messaging API",
+    "name": "charge bot - LINE Messaging API",
     "description": "This is a sample application for the LINE Messaging API",
     "keywords": ["chatbot", "line", "python"],
     "env": {
