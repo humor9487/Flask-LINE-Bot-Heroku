@@ -9,8 +9,7 @@ from flask import Flask, abort, request
 # https://github.com/line/line-bot-sdk-python
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage, FollowEvent, TemplateSendMessage, URIAction, \
-    ButtonsTemplate
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, FollowEvent, TemplateSendMessage, URIAction, PostbackAction, ButtonsTemplate
 
 # 試算表金鑰與網址
 Json = 'informatics-and-social-service-4075fdd59a29.json'  # Json 的單引號內容請改成妳剛剛下載的那個金鑰
@@ -62,22 +61,22 @@ def handle_message(event):
             title='Menu',
             text='Please select',
             actions=[
-                PostbackAction1(
+                PostbackAction(
                     label='我要記帳',
                     display_text='postback text',
                     data='action=buy&itemid=1'
                 ),
-                PostbackAction2(
+                PostbackAction(
                     label='我要查詢',
                     display_text='postback text',
                     data='action=buy&itemid=1'
                 ),
-                PostbackAction3(
+                PostbackAction(
                     label='我要重置',
                     display_text='postback text',
                     data='action=buy&itemid=1'
                 ),
-                PostbackAction3(
+                PostbackAction(
                     label='查看統計',
                     display_text='postback text',
                     data='action=buy&itemid=1'
