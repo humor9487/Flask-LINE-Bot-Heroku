@@ -53,9 +53,23 @@ def callback():
 def handle_message(event):
     get_message = event.message.text
     
+    buttons_template_message = TemplateSendMessage(
+    alt_text='Buttons template',
+    template=ButtonsTemplate(
+        thumbnail_image_url='https://example.com/image.jpg',
+        title='Menu',
+        text='Please select',
+        actions=[
+            URIAction(
+                label='uri',
+                uri='https://www.google.com.tw/'
+            )
+        ]
+    )
+)
+    
     # Send To Line
-    reply = TextSendMessage(text=f"Echo!!{get_message}")
-    line_bot_api.reply_message(event.reply_token, reply)
+    line_bot_api.reply_message(event.reply_token, buttons_template_message)
 
 # 新增功能1:歡迎訊息
 @handler.add(FollowEvent)
