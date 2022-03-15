@@ -76,11 +76,6 @@ def handle_message(event):
                     display_text='postback text',
                     data='action=buy&itemid=1'
                 ),
-                PostbackAction(
-                    label='查看統計',
-                    display_text='postback text',
-                    data='action=buy&itemid=1'
-                ),
                 URIAction(
                     label='查看表單',
                     uri='https://docs.google.com/spreadsheets/d/1sXOLCHiH0n-HnmdiJzLVVDE5TjhoAPI3yN4Ku-4JUM4/edit?usp=sharing')
