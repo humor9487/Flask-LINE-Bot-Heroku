@@ -9,7 +9,7 @@ from flask import Flask, abort, request
 # https://github.com/line/line-bot-sdk-python
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage, FollowEvent, TemplateSendMessage, URIAction, PostbackAction, ButtonsTemplate
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, FollowEvent, TemplateSendMessage, URIAction, PostbackAction, ButtonsTemplate, PostbackEvent
 
 # 試算表金鑰與網址
 Json = 'informatics-and-social-service-4075fdd59a29.json'  # Json 的單引號內容請改成妳剛剛下載的那個金鑰
@@ -30,8 +30,6 @@ app = Flask(__name__)
 line_bot_api = LineBotApi(os.environ.get("CHANNEL_ACCESS_TOKEN"))
 handler = WebhookHandler(os.environ.get("CHANNEL_SECRET"))
 
-# 指令集
-commands = ["查看表單", "重置", "收支平衡"]
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -58,23 +56,23 @@ def handle_message(event):
         alt_text='Buttons template',
         template=ButtonsTemplate(
             thumbnail_image_url='https://example.com/image.jpg',
-            title='Menu',
-            text='Please select',
+            title='選項',
+            text='請選擇要使用的功能',
             actions=[
                 PostbackAction(
-                    label='我要記帳',
-                    display_text='postback text',
-                    data='action=buy&itemid=1'
+                    label='記帳',
+                    display_text='我要記帳',
+                    data='record'
                 ),
                 PostbackAction(
-                    label='我要查詢',
-                    display_text='postback text',
-                    data='action=buy&itemid=1'
+                    label='查詢',
+                    display_text='我要查詢',
+                    data='inquire'
                 ),
                 PostbackAction(
-                    label='我要重置',
-                    display_text='postback text',
-                    data='action=buy&itemid=1'
+                    label='重置',
+                    display_text='我要重置',
+                    data='reset'
                 ),
                 URIAction(
                     label='查看表單',
@@ -93,5 +91,17 @@ def Welcome(event):
     get_ID = event.source.userId
 
     # Send Welcome Message
-    welcome = TextSendMessage(text=f"請輸入'我要色色'以開啟對話框")
-    line_bot_api.push_message(get_ID, welcome)
+    line_bot_api.reply_message(event.reply_token, TextSendMessage(text='Got follow event'))
+
+@handler.add(PostbackEvent)
+def Postback01(event):
+    get_data = event.postback.data
+    if get_data == 'record':
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text='紀錄成功'))
+    elif get_data == 'inquire':
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text='查詢結束'))
+    elif get_data == 'reset':
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text='重置成功'))
+    else:
+        print("error")
+        pass
