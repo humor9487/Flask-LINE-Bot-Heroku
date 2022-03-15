@@ -52,21 +52,8 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     get_message = event.message.text
-    if get_message == "我要色色":
-        buttons_template_message = TemplateSendMessage(
-            alt_text='Buttons template',
-            template=ButtonsTemplate(
-                thumbnail_image_url='https://example.com/image.jpg',
-                title='功能選單',
-                text='請選擇您要使用的功能',
-                actions=[
-                    URIAction(
-                        label='查看表單',
-                        uri='https://docs.google.com/spreadsheets/d/1sXOLCHiH0n-HnmdiJzLVVDE5TjhoAPI3yN4Ku-4JUM4/edit?usp=sharing')
-                ]
-            )
-        )
-        # Send To Line
+    
+    # Send To Line
     reply = TextSendMessage(text=f"Echo!!{get_message}")
     line_bot_api.reply_message(event.reply_token, reply)
 
