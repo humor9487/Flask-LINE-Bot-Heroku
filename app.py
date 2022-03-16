@@ -106,7 +106,7 @@ def handle_message(event):
     else:
         try:
             m, d = get_message.split("/")
-            valid = date_valid(m, d)
+            valid = date_valid(int(m), int(d))
             if valid:
                 out = inquire_certain_day(get_message)
                 if out == []:
@@ -116,7 +116,7 @@ def handle_message(event):
                     s = 0
                     for o in out:
                         s += int(o[2])
-                        if o[2] > 0:
+                        if int(o[2]) > 0:
                             reply.append(TextSendMessage(text=f"{get_message}在{o[1]}項目中花費了{-o[2]}元"))
                         else:
                             reply.append(TextSendMessage(text=f"{get_message}在{o[1]}項目中得到了{o[2]}元"))
