@@ -31,6 +31,28 @@ line_bot_api = LineBotApi(os.environ.get("CHANNEL_ACCESS_TOKEN"))
 handler = WebhookHandler(os.environ.get("CHANNEL_SECRET"))
 
 
+def inquire_certain_day(day):
+    datas = Sheets.get_all_values()
+    re = []
+    for data in datas:
+        if data[0] == day:
+            re.append(data)
+    return re
+def date_valid(m, d):
+    if m % 2:
+        if m > 7:
+            return d <= 30
+        else:
+            return d <=31
+    else:
+        if m == 2:
+            return d <= 29
+        elif m > 6:
+            return d <= 31
+        else:
+            return d <= 30
+
+
 
 @app.route("/", methods=["GET", "POST"])
 def callback():
@@ -51,35 +73,59 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     get_message = event.message.text
-
-    buttons_template_message = TemplateSendMessage(
-        alt_text='Buttons template',
-        template=ButtonsTemplate(
-            thumbnail_image_url='https://example.com/image.jpg',
-            title='選項',
-            text='請選擇要使用的功能',
-            actions=[
-                PostbackAction(
-                    label='記帳',
-                    display_text='我要記帳',
-                    data='record'
-                ),
-                PostbackAction(
-                    label='查詢',
-                    display_text='我要查詢',
-                    data='inquire'
-                ),
-                PostbackAction(
-                    label='重置',
-                    display_text='我要重置',
-                    data='reset'
-                ),
-                URIAction(
-                    label='查看表單',
-                    uri='https://docs.google.com/spreadsheets/d/1sXOLCHiH0n-HnmdiJzLVVDE5TjhoAPI3yN4Ku-4JUM4/edit?usp=sharing')
-            ]
+    if get_message == '功能選項':
+        buttons_template_message = TemplateSendMessage(
+            alt_text='功能選項',
+            template=ButtonsTemplate(
+                thumbnail_image_url='https://example.com/image.jpg',
+                title='功能選項',
+                text='請選擇要使用的功能',
+                actions=[
+                    PostbackAction(
+                        label='記帳',
+                        display_text='我要記帳',
+                        data='record'
+                    ),
+                    PostbackAction(
+                        label='查詢',
+                        display_text='我要查詢',
+                        data='inquire'
+                    ),
+                    PostbackAction(
+                        label='重置',
+                        display_text='我要重置',
+                        data='reset'
+                    ),
+                    URIAction(
+                        label='查看表單',
+                        uri='https://docs.google.com/spreadsheets/d/1sXOLCHiH0n-HnmdiJzLVVDE5TjhoAPI3yN4Ku-4JUM4/edit?usp=sharing')
+                ]
+            )
         )
-    )
+        line_bot_api.reply_message(event.reply_token, buttons_template_message)
+    else:
+        try:
+            m, d = get_message.split("/")
+            valid = date_valid(m, d)
+            if valid:
+                out = inquire_certain_day(get_message)
+                if out == []:
+                    line_bot_api.reply_message(event.reply_token, TextSendMessage(text="找不到資料"))
+                else:
+                    reply = []
+                    s = 0
+                    for o in out:
+                        s += int(o[2])
+                        if o[2] > 0:
+                            reply.append(TextSendMessage(text=f"{get_message}在{o[1]}項目中花費了{-o[2]}元"))
+                        else:
+                            reply.append(TextSendMessage(text=f"{get_message}在{o[1]}項目中得到了{o[2]}元"))
+                    reply.append(TextSendMessage(text=f"結算:{s}"))
+                    line_bot_api.reply_message(event.reply_token, reply)
+            else:
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="錯誤的日期格式"))
+        except ValueError:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="不明的指令"))
 
     # Send To Line
     line_bot_api.reply_message(event.reply_token, buttons_template_message)
@@ -99,8 +145,9 @@ def Postback01(event):
     if get_data == 'record':
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text='紀錄成功'))
     elif get_data == 'inquire':
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text='查詢結束'))
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text='輸入您想查詢的日期(格式month/day):'))
     elif get_data == 'reset':
+        Sheets.clear()
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text='重置成功'))
     else:
         print("error")
