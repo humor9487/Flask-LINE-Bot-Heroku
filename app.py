@@ -107,9 +107,13 @@ def handle_message(event):
             if Sheets.cell(len(datas), 2).value == '*待輸入支出':
                 Sheets.update_cell(len(datas), 2, item)
                 Sheets.update_cell(len(datas), 3, str(-money))
+                data = Sheets.get_all_values()[-1]
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"成功紀錄{data[0]}在{data[1]}項目中花費了{-int(data[2])}元"))
             elif Sheets.cell(len(datas), 2).value == '*待輸入收入':
                 Sheets.update_cell(len(datas), 2, item)
                 Sheets.update_cell(len(datas), 3, str(money))
+                data = Sheets.get_all_values()[-1]
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"成功紀錄{data[0]}在{data[1]}項目中花費了{-int(data[2])}元"))
             elif Sheets.cell(len(datas), 2).value == '*待輸入':
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text="請先選擇 收入/支出"))
             else:
@@ -243,7 +247,7 @@ def Postback01(event):
                 s += int(re[2])
                 if re[1] == '待輸入':
                     continue
-                if int(re[2]) > 0:
+                if int(re[2]) < 0:
                     reply.append(TextSendMessage(text=f"{re[0]}在{re[1]}項目中花費了{-int(re[2])}元"))
                 else:
                     reply.append(TextSendMessage(text=f"{re[0]}在{re[1]}項目中存到了{re[2]}元"))
