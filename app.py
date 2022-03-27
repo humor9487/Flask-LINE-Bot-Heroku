@@ -33,24 +33,18 @@ line_bot_api = LineBotApi(os.environ.get("CHANNEL_ACCESS_TOKEN"))
 handler = WebhookHandler(os.environ.get("CHANNEL_SECRET"))
 record_mode = False
 
-ini_m, ini_d = '06', '30'
+ini_y, ini_m, ini_d = '2022', '06', '30'
 def get_now_time():
-    global ini_m, ini_d
+    global ini_y, ini_m, ini_d
     now_time = time.localtime(time.time())
     ini_m = str(now_time.tm_mon)
     ini_d = str(now_time.tm_mday)
+    ini_y = str(now_time.tm_year)
     if len(ini_m) == 1:
         ini_m = "0"+str(ini_m)
     if len(ini_d) == 1:
         ini_d = "0"+str(ini_d)
 
-def inquire_certain_day(day):
-    datas = Sheets.get_all_values()
-    re = []
-    for data in datas:
-        if data[0] == day:
-            re.append(data)
-    return re
 def date_valid(m, d):
     if m % 2:
         if m > 7:
@@ -87,8 +81,6 @@ def callback():
 def handle_message(event):
     get_message = event.message.text
 
-    #if record_mode:
-
     if get_message == '功能選項':
         buttons_template_message = TemplateSendMessage(
             alt_text='功能選項',
@@ -119,28 +111,7 @@ def handle_message(event):
         )
         line_bot_api.reply_message(event.reply_token, buttons_template_message)
     else:
-        try:
-            m, d = get_message.split("/")
-            valid = date_valid(int(m), int(d))
-            if valid:
-                out = inquire_certain_day(get_message)
-                if out == []:
-                    line_bot_api.reply_message(event.reply_token, TextSendMessage(text="找不到資料"))
-                else:
-                    reply = []
-                    s = 0
-                    for o in out:
-                        s += int(o[2])
-                        if int(o[2]) > 0:
-                            reply.append(TextSendMessage(text=f"{get_message}在{o[1]}項目中花費了{-int(o[2])}元"))
-                        else:
-                            reply.append(TextSendMessage(text=f"{get_message}在{o[1]}項目中得到了{o[2]}元"))
-                    reply.append(TextSendMessage(text=f"結算:{s}"))
-                    line_bot_api.reply_message(event.reply_token, reply)
-            else:
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="錯誤的日期格式"))
-        except ValueError:
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="不明的指令\n請輸入'功能選項'呼叫功能表"))
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text="不明的指令\n請輸入'功能選項'呼叫功能表"))
 
     # Send To Line
     line_bot_api.reply_message(event.reply_token, buttons_template_message)
@@ -159,7 +130,6 @@ def Postback01(event):
     get_now_time()
     get_data = event.postback.data
     if get_data == 'record':
-        record_mode = True
         date_picker = TemplateSendMessage(
             alt_text='請選擇日期',
             template=ButtonsTemplate(
@@ -170,7 +140,7 @@ def Postback01(event):
                         label='Setting',
                         data='record_date',
                         mode='date',
-                        initial=f'2021-{ini_m}-{ini_d}',
+                        initial=f'{ini_y}-{ini_m}-{ini_d}',
                         min='2020-01-01',
                         max='2099-12-31'
                     )
@@ -184,15 +154,56 @@ def Postback01(event):
 
         #line_bot_api.reply_message(event.reply_token, TextSendMessage(text='紀錄成功'))
     elif get_data == 'inquire':
+        date_picker = TemplateSendMessage(
+            alt_text='請選擇日期',
+            template=ButtonsTemplate(
+                text='請選擇日期',
+                title='YYYY-MM-dd',
+                actions=[
+                    DatetimePickerTemplateAction(
+                        label='Setting',
+                        data='inquire_date',
+                        mode='date',
+                        initial=f'{ini_y}-{ini_m}-{ini_d}',
+                        min='2020-01-01',
+                        max='2099-12-31'
+                    )
+                ]
+            )
+        )
 
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text='輸入您想查詢的日期(格式month/day):'))
+        line_bot_api.reply_message(event.reply_token, date_picker)
     elif get_data == 'reset':
         Sheets.clear()
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text='重置成功'))
     elif get_data == 'record_date':
-        date = event.postback.params['date']
+        date = str(event.postback.params['date'])
+        date.replace('-', '/')
+        Sheets.append_row([date, '項目', '金額'])
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f'{date}'))
         #Sheets.append_row([ini_m+'/'+ini_d, '項目','金額'])
+    elif get_data == 'inquire_date':
+        date = str(event.postback.params['date'])
+        date.replace('-','/')
+        datas = Sheets.get_all_values()
+        result = []
+        for data in datas:
+            if data[0] == date:
+                result.append(data)
+        if result == []:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="找不到資料"))
+        else:
+            reply = []
+            s = 0
+            for re in result:
+                s += int(re[2])
+                if int(re[2]) > 0:
+                    reply.append(TextSendMessage(text=f"{re[0]}在{re[1]}項目中花費了{-int(re[2])}元"))
+                else:
+                    reply.append(TextSendMessage(text=f"{re[0]}在{re[1]}項目中存到了{re[2]}元"))
+            reply.append(TextSendMessage(text=f"{re[0]}的收支結算:{s}"))
+            line_bot_api.reply_message(event.reply_token, reply)
+            
     else:
         print("error")
         pass
