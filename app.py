@@ -9,7 +9,8 @@ from flask import Flask, abort, request
 # https://github.com/line/line-bot-sdk-python
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage, FollowEvent, TemplateSendMessage, URIAction, PostbackAction, ButtonsTemplate, PostbackEvent
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, FollowEvent, TemplateSendMessage\
+    , URIAction, PostbackAction, ButtonsTemplate, PostbackEvent, DatetimePickerTemplateAction
 
 # 試算表金鑰與網址
 Json = 'informatics-and-social-service-4075fdd59a29.json'  # Json 的單引號內容請改成妳剛剛下載的那個金鑰
@@ -29,7 +30,7 @@ app = Flask(__name__)
 
 line_bot_api = LineBotApi(os.environ.get("CHANNEL_ACCESS_TOKEN"))
 handler = WebhookHandler(os.environ.get("CHANNEL_SECRET"))
-
+record_mode = False
 
 def inquire_certain_day(day):
     datas = Sheets.get_all_values()
@@ -73,11 +74,13 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     get_message = event.message.text
+
+    #if record_mode:
+
     if get_message == '功能選項':
         buttons_template_message = TemplateSendMessage(
             alt_text='功能選項',
             template=ButtonsTemplate(
-                thumbnail_image_url='https://example.com/image.jpg',
                 title='功能選項',
                 text='請選擇要使用的功能',
                 actions=[
@@ -117,7 +120,7 @@ def handle_message(event):
                     for o in out:
                         s += int(o[2])
                         if int(o[2]) > 0:
-                            reply.append(TextSendMessage(text=f"{get_message}在{o[1]}項目中花費了{-o[2]}元"))
+                            reply.append(TextSendMessage(text=f"{get_message}在{o[1]}項目中花費了{-int(o[2])}元"))
                         else:
                             reply.append(TextSendMessage(text=f"{get_message}在{o[1]}項目中得到了{o[2]}元"))
                     reply.append(TextSendMessage(text=f"結算:{s}"))
@@ -125,7 +128,7 @@ def handle_message(event):
             else:
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text="錯誤的日期格式"))
         except ValueError:
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="不明的指令"))
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="不明的指令\n請輸入'功能選項'呼叫功能表"))
 
     # Send To Line
     line_bot_api.reply_message(event.reply_token, buttons_template_message)
@@ -143,7 +146,30 @@ def Welcome(event):
 def Postback01(event):
     get_data = event.postback.data
     if get_data == 'record':
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text='紀錄成功'))
+        record_mode = True
+        date_picker = TemplateSendMessage(
+            alt_text='請選擇日期',
+            template=ButtonsTemplate(
+                text='請選擇日期',
+                title='YYYY-MM-dd',
+                actions=[
+                    DatetimePickerTemplateAction(
+                        label='Setting',
+                        data='action=buy&itemid=1',
+                        mode='date',
+                        initial='2017-04-01',
+                        min='2017-04-01',
+                        max='2099-12-31'
+                    )
+                ]
+            )
+        )
+
+        line_bot_api.reply_message(event.reply_token, date_picker)
+
+
+
+        #line_bot_api.reply_message(event.reply_token, TextSendMessage(text='紀錄成功'))
     elif get_data == 'inquire':
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text='輸入您想查詢的日期(格式month/day):'))
     elif get_data == 'reset':
