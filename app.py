@@ -5,6 +5,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials as SAC
 
 from flask import Flask, abort, request
+import time
 
 # https://github.com/line/line-bot-sdk-python
 from linebot import LineBotApi, WebhookHandler
@@ -31,6 +32,17 @@ app = Flask(__name__)
 line_bot_api = LineBotApi(os.environ.get("CHANNEL_ACCESS_TOKEN"))
 handler = WebhookHandler(os.environ.get("CHANNEL_SECRET"))
 record_mode = False
+
+ini_m, ini_d = '06', '30'
+def get_now_time():
+    global ini_m, ini_d
+    now_time = time.localtime(time.time())
+    ini_m = str(now_time.tm_mon)
+    ini_d = str(now_time.tm_mday)
+    if len(ini_m) == 1:
+        ini_m = "0"+str(ini_m)
+    if len(d) == 1:
+        ini_d = "0"+str(ini_d)
 
 def inquire_certain_day(day):
     datas = Sheets.get_all_values()
@@ -78,6 +90,7 @@ def handle_message(event):
     #if record_mode:
 
     if get_message == '功能選項':
+        get_now_time()
         buttons_template_message = TemplateSendMessage(
             alt_text='功能選項',
             template=ButtonsTemplate(
@@ -157,8 +170,8 @@ def Postback01(event):
                         label='Setting',
                         data='action=buy&itemid=1',
                         mode='date',
-                        initial='2017-04-01',
-                        min='2017-04-01',
+                        initial=f'2021-{ini_m}-{ini_d}',
+                        min='2020-01-01',
                         max='2099-12-31'
                     )
                 ]
