@@ -90,7 +90,6 @@ def handle_message(event):
     #if record_mode:
 
     if get_message == '功能選項':
-        get_now_time()
         buttons_template_message = TemplateSendMessage(
             alt_text='功能選項',
             template=ButtonsTemplate(
@@ -157,6 +156,7 @@ def Welcome(event):
 
 @handler.add(PostbackEvent)
 def Postback01(event):
+    get_now_time()
     get_data = event.postback.data
     if get_data == 'record':
         record_mode = True
@@ -168,7 +168,7 @@ def Postback01(event):
                 actions=[
                     DatetimePickerTemplateAction(
                         label='Setting',
-                        data='action=buy&itemid=1',
+                        data='record_date',
                         mode='date',
                         initial=f'2021-{ini_m}-{ini_d}',
                         min='2020-01-01',
@@ -184,10 +184,15 @@ def Postback01(event):
 
         #line_bot_api.reply_message(event.reply_token, TextSendMessage(text='紀錄成功'))
     elif get_data == 'inquire':
+
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text='輸入您想查詢的日期(格式month/day):'))
     elif get_data == 'reset':
         Sheets.clear()
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text='重置成功'))
+    elif get_data == 'record_date':
+        date = event.postback.params['date']
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f'{date}'))
+        #Sheets.append_row([ini_m+'/'+ini_d, '項目','金額'])
     else:
         print("error")
         pass
