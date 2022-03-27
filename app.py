@@ -24,7 +24,7 @@ Sheet = GoogleSheets.open_by_key('1sXOLCHiH0n-HnmdiJzLVVDE5TjhoAPI3yN4Ku-4JUM4')
 Sheets = Sheet.sheet1
 # 寫入
 if Sheets.get_all_values() == []:
-    dataTitle = ["消費日期", "消費項目", "消費金額"]
+    dataTitle = ["日期", "項目", "金額"]
     Sheets.append_row(dataTitle)
 
 app = Flask(__name__)
@@ -101,19 +101,19 @@ def handle_message(event):
         try:
             item, money = str(get_message).split('=')
             money = int(money)
+            datas = Sheets.get_all_values()
             if money <= 0:
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text="請輸入有效的金額"))
-            datas = Sheets.get_all_values()
-            if Sheets.cell(len(datas), 2).value == '*待輸入支出':
+            elif Sheets.cell(len(datas), 2).value == '*待輸入支出':
                 Sheets.update_cell(len(datas), 2, item)
                 Sheets.update_cell(len(datas), 3, str(-money))
                 data = Sheets.get_all_values()[-1]
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"成功紀錄{data[0]}在{data[1]}項目中花費了{-int(data[2])}元"))
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"成功紀錄:\n{data[0]}在{data[1]}項目中花費了{-int(data[2])}元"))
             elif Sheets.cell(len(datas), 2).value == '*待輸入收入':
                 Sheets.update_cell(len(datas), 2, item)
                 Sheets.update_cell(len(datas), 3, str(money))
                 data = Sheets.get_all_values()[-1]
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"成功紀錄{data[0]}在{data[1]}項目中花費了{-int(data[2])}元"))
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"成功紀錄:\n{data[0]}在{data[1]}項目中花費了{-int(data[2])}元"))
             elif Sheets.cell(len(datas), 2).value == '*待輸入':
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text="請先選擇 收入/支出"))
             else:
@@ -218,14 +218,14 @@ def Postback01(event):
 
     elif get_data == 'record_income':
         datas = Sheets.get_all_values()
-        if datas[-1][1] == '*待輸入':
+        if datas[-1][1] == '*待輸入' or datas[-1][1] == '*待輸入收入' or datas[-1][1] == '*待輸入支出':
             Sheets.update_cell(len(datas), 2, '*待輸入收入')
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f'請輸入收入項目與金額。\n(ex:撿到一百塊=100)'))
         else:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f'請重新選擇日期'))
     elif get_data == 'record_expense':
         datas = Sheets.get_all_values()
-        if datas[-1][1] == '*待輸入':
+        if datas[-1][1] == '*待輸入' or datas[-1][1] == '*待輸入收入' or datas[-1][1] == '*待輸入支出':
             Sheets.update_cell(len(datas), 2, '*待輸入支出')
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f'請輸入支出項目與金額。\n(ex:我的豆花=30)'))
         else:
