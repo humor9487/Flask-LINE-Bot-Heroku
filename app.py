@@ -203,7 +203,7 @@ def Postback01(event):
                     reply.append(TextSendMessage(text=f"{re[0]}在{re[1]}項目中存到了{re[2]}元"))
             reply.append(TextSendMessage(text=f"{re[0]}的收支結算:{s}"))
             line_bot_api.reply_message(event.reply_token, reply)
-            
+
     else:
-        print("error")
+        print("Unexpect PostbackEvent")
         pass
