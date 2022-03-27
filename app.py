@@ -41,7 +41,7 @@ def get_now_time():
     ini_d = str(now_time.tm_mday)
     if len(ini_m) == 1:
         ini_m = "0"+str(ini_m)
-    if len(d) == 1:
+    if len(ini_d) == 1:
         ini_d = "0"+str(ini_d)
 
 def inquire_certain_day(day):
