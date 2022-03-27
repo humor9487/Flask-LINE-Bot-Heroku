@@ -241,7 +241,7 @@ def Postback01(event):
             s = 0
             for re in result:
                 s += int(re[2])
-                if re[1] == '待輸入'
+                if re[1] == '待輸入':
                     continue
                 if int(re[2]) > 0:
                     reply.append(TextSendMessage(text=f"{re[0]}在{re[1]}項目中花費了{-int(re[2])}元"))
