@@ -11,7 +11,7 @@ import time
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage, FollowEvent, TemplateSendMessage\
-    , URIAction, PostbackAction, ButtonsTemplate, PostbackEvent, DatetimePickerTemplateAction
+    , URIAction, PostbackAction, ButtonsTemplate, PostbackEvent, DatetimePickerTemplateAction, ConfirmTemplate
 
 # 試算表金鑰與網址
 Json = 'informatics-and-social-service-4075fdd59a29.json'  # Json 的單引號內容請改成妳剛剛下載的那個金鑰
@@ -31,7 +31,7 @@ app = Flask(__name__)
 
 line_bot_api = LineBotApi(os.environ.get("CHANNEL_ACCESS_TOKEN"))
 handler = WebhookHandler(os.environ.get("CHANNEL_SECRET"))
-record_mode = False
+
 
 ini_y, ini_m, ini_d = '2022', '06', '30'
 def get_now_time():
@@ -45,19 +45,6 @@ def get_now_time():
     if len(ini_d) == 1:
         ini_d = "0"+str(ini_d)
 
-def date_valid(m, d):
-    if m % 2:
-        if m > 7:
-            return d <= 30
-        else:
-            return d <=31
-    else:
-        if m == 2:
-            return d <= 29
-        elif m > 6:
-            return d <= 31
-        else:
-            return d <= 30
 
 
 
@@ -111,7 +98,24 @@ def handle_message(event):
         )
         line_bot_api.reply_message(event.reply_token, buttons_template_message)
     else:
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text="不明的指令\n請輸入'功能選項'呼叫功能表"))
+        try:
+            item, money = str(get_message).split('=')
+            money = int(money)
+            if money <= 0:
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="請輸入有效的金額"))
+            datas = Sheets.get_all_values()
+            if Sheets.cell(len(datas), 2).value == '*待輸入支出':
+                Sheets.update_cell(len(datas), 2, item)
+                Sheets.update_cell(len(datas), 3, str(-money))
+            elif Sheets.cell(len(datas), 2).value == '*待輸入收入':
+                Sheets.update_cell(len(datas), 2, item)
+                Sheets.update_cell(len(datas), 3, str(money))
+            elif Sheets.cell(len(datas), 2).value == '*待輸入':
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="請先選擇 收入/支出"))
+            else:
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="請先使用記帳功能選擇時間"))
+        except ValueError:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="不明的指令\n請輸入'功能選項'呼叫功能表"))
 
     # Send To Line
     line_bot_api.reply_message(event.reply_token, buttons_template_message)
@@ -130,8 +134,8 @@ def Postback01(event):
     get_now_time()
     get_data = event.postback.data
     if get_data == 'record':
-        date_picker = TemplateSendMessage(
-            alt_text='請選擇日期',
+        picker = TemplateSendMessage(
+            alt_text='紀錄中...',
             template=ButtonsTemplate(
                 text='請選擇日期',
                 title='YYYY-MM-dd',
@@ -148,20 +152,20 @@ def Postback01(event):
             )
         )
 
-        line_bot_api.reply_message(event.reply_token, date_picker)
+        line_bot_api.reply_message(event.reply_token, picker)
 
 
 
         #line_bot_api.reply_message(event.reply_token, TextSendMessage(text='紀錄成功'))
     elif get_data == 'inquire':
-        date_picker = TemplateSendMessage(
-            alt_text='請選擇日期',
+        picker = TemplateSendMessage(
+            alt_text='查詢中...',
             template=ButtonsTemplate(
-                text='請選擇日期',
-                title='YYYY-MM-dd',
+                text='請選擇',
+                title='請選擇收入/支出',
                 actions=[
                     DatetimePickerTemplateAction(
-                        label='Setting',
+                        label='選擇日期',
                         data='inquire_date',
                         mode='date',
                         initial=f'{ini_y}-{ini_m}-{ini_d}',
@@ -172,19 +176,59 @@ def Postback01(event):
             )
         )
 
-        line_bot_api.reply_message(event.reply_token, date_picker)
+        line_bot_api.reply_message(event.reply_token, picker)
     elif get_data == 'reset':
         Sheets.clear()
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text='重置成功'))
     elif get_data == 'record_date':
         date = str(event.postback.params['date'])
-        date.replace('-', '/')
-        Sheets.append_row([date, '項目', '金額'])
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f'{date}'))
-        #Sheets.append_row([ini_m+'/'+ini_d, '項目','金額'])
+        date = date.replace('-', '/')
+        datas = Sheets.get_all_values
+        if datas[-1][1][0] != '*':
+            Sheets.append_row([date, '*待輸入', '0'])
+        else:
+            Sheets.update_cell(len(datas), 1, date)
+            Sheets.update_cell(len(datas), 2, '*待輸入')
+
+        picker = TemplateSendMessage(
+            alt_text='選擇中...',
+            template=ConfirmTemplate(
+                text='請選擇日期',
+                title='YYYY-MM-dd',
+                actions=[
+                    PostbackAction(
+                        label='收入',
+                        display_text='輸入中...',
+                        data='record_income'
+                    ),
+                    PostbackAction(
+                        label='支出',
+                        display_text='輸入中...',
+                        data='record_expense'
+                    )
+                ]
+            )
+        )
+
+        line_bot_api.reply_message(event.reply_token, picker)
+
+    elif get_data == 'record_income':
+        datas = Sheets.get_all_values()
+        if datas[-1][1] == '*待輸入':
+            Sheets.update_cell(len(datas), 2, '*待輸入收入')
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f'請輸入收入項目與金額。\n(ex:嘿嘿撿到一百塊=100)'))
+        else:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f'請重新選擇日期'))
+    elif get_data == 'record_expence':
+        datas = Sheets.get_all_values()
+        if datas[-1][1] == '*待輸入':
+            Sheets.update_cell(len(datas), 2, '*待輸入支出')
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f'請輸入支出項目與金額。\n(ex:我的豆花=30)'))
+        else:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f'請重新選擇日期'))
     elif get_data == 'inquire_date':
         date = str(event.postback.params['date'])
-        date.replace('-','/')
+        date = date.replace('-', '/')
         datas = Sheets.get_all_values()
         result = []
         for data in datas:
@@ -197,6 +241,8 @@ def Postback01(event):
             s = 0
             for re in result:
                 s += int(re[2])
+                if re[1] == '待輸入'
+                    continue
                 if int(re[2]) > 0:
                     reply.append(TextSendMessage(text=f"{re[0]}在{re[1]}項目中花費了{-int(re[2])}元"))
                 else:
