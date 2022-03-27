@@ -31,7 +31,7 @@ app = Flask(__name__)
 
 line_bot_api = LineBotApi(os.environ.get("CHANNEL_ACCESS_TOKEN"))
 handler = WebhookHandler(os.environ.get("CHANNEL_SECRET"))
-
+onaction = False
 
 ini_y, ini_m, ini_d = '2022', '06', '30'
 def get_now_time():
@@ -182,8 +182,36 @@ def Postback01(event):
 
         line_bot_api.reply_message(event.reply_token, picker)
     elif get_data == 'reset':
-        Sheets.clear()
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text='重置成功'))
+        onaction = True
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text='您真的要重置所有紀錄嗎?'))
+        picker = TemplateSendMessage(
+            alt_text='選擇中...',
+            template=ConfirmTemplate(
+                text='之前的資料都會不見喔!!',
+                title='確定要重置所有紀錄嗎?',
+                actions=[
+                    PostbackAction(
+                        label='是',
+                        display_text='是',
+                        data='reset_true'
+                    ),
+                    PostbackAction(
+                        label='否',
+                        display_text='否',
+                        data='record_false'
+                    )
+                ]
+            )
+        )
+
+        line_bot_api.reply_message(event.reply_token, picker)
+
+    elif get_data == 'reset_true':
+        if onaction:
+            Sheets.clear()
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text='重置成功'))
+    elif get_data == 'reset_false':
+        onaction = False
     elif get_data == 'record_date':
         date = str(event.postback.params['date'])
         date = date.replace('-', '/')
@@ -197,8 +225,8 @@ def Postback01(event):
         picker = TemplateSendMessage(
             alt_text='選擇中...',
             template=ConfirmTemplate(
-                text='請選擇收入或支出',
-                title='YYYY-MM-dd',
+                text='收入/支出',
+                title='請選擇收入或支出',
                 actions=[
                     PostbackAction(
                         label='收入',
