@@ -183,7 +183,7 @@ def Postback01(event):
     elif get_data == 'record_date':
         date = str(event.postback.params['date'])
         date = date.replace('-', '/')
-        datas = Sheets.get_all_values
+        datas = Sheets.get_all_values()
         if datas[-1][1][0] != '*':
             Sheets.append_row([date, '*待輸入', '0'])
         else:
