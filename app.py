@@ -193,7 +193,7 @@ def Postback01(event):
         picker = TemplateSendMessage(
             alt_text='選擇中...',
             template=ConfirmTemplate(
-                text='請選擇日期',
+                text='請選擇收入或支出',
                 title='YYYY-MM-dd',
                 actions=[
                     PostbackAction(
@@ -216,10 +216,10 @@ def Postback01(event):
         datas = Sheets.get_all_values()
         if datas[-1][1] == '*待輸入':
             Sheets.update_cell(len(datas), 2, '*待輸入收入')
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f'請輸入收入項目與金額。\n(ex:嘿嘿撿到一百塊=100)'))
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f'請輸入收入項目與金額。\n(ex:撿到一百塊=100)'))
         else:
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f'請重新選擇日期'))
-    elif get_data == 'record_expence':
+    elif get_data == 'record_expense':
         datas = Sheets.get_all_values()
         if datas[-1][1] == '*待輸入':
             Sheets.update_cell(len(datas), 2, '*待輸入支出')
@@ -251,5 +251,4 @@ def Postback01(event):
             line_bot_api.reply_message(event.reply_token, reply)
 
     else:
-        print("Unexpect PostbackEvent")
-        pass
+        print("Unexpect PostbackEvent!!!")
