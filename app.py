@@ -66,7 +66,7 @@ function_label = TemplateSendMessage(
                     ),
                     URIAction(
                         label='查看表單',
-                        uri='https://docs.google.com/spreadsheets/d/1sXOLCHiH0n-HnmdiJzLVVDE5TjhoAPI3yN4Ku-4JUM4/edit?usp=sharing')
+                        uri='https://docs.google.com/spreadsheets/d/15z2LDV9Rr1c7QueeeKQZSWaylEieKo9YJA-vmHLVKNE/edit?usp=sharing')
                 ]
             )
         )
