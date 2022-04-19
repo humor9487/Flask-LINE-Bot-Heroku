@@ -15,7 +15,7 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage, FollowEve
     ,StickerSendMessage, URIAction, PostbackAction, ButtonsTemplate, PostbackEvent, DatetimePickerTemplateAction, ConfirmTemplate
 
 # 試算表金鑰與網址
-Json = 'informatics-and-social-service-4075fdd59a29.json'  # Json 的單引號內容請改成妳剛剛下載的那個金鑰
+Json = 'liquid-streamer-343612-20f96166f6a8.json'  # Json 的單引號內容請改成妳剛剛下載的那個金鑰
 Url = ['https://spreadsheets.google.com/feeds']
 # 連結至資料表
 Connect = SAC.from_json_keyfile_name(Json, Url)
