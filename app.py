@@ -21,7 +21,7 @@ Url = ['https://spreadsheets.google.com/feeds']
 Connect = SAC.from_json_keyfile_name(Json, Url)
 GoogleSheets = gspread.authorize(Connect)
 # 開啟資料表及工作表
-Sheet = GoogleSheets.open_by_key('1sXOLCHiH0n-HnmdiJzLVVDE5TjhoAPI3yN4Ku-4JUM4')  # 這裡請輸入妳自己的試算表代號
+Sheet = GoogleSheets.open_by_key('15z2LDV9Rr1c7QueeeKQZSWaylEieKo9YJA-vmHLVKNE')  # 這裡請輸入妳自己的試算表代號
 Sheets = Sheet.sheet1
 
 app = Flask(__name__)
