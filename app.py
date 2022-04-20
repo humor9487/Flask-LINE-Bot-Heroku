@@ -15,6 +15,7 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage, FollowEve
     ,StickerSendMessage, URIAction, PostbackAction, ButtonsTemplate, PostbackEvent, DatetimePickerTemplateAction, ConfirmTemplate
 
 import pyimgur
+import matplotlib.pyplot as plt
 
 # 試算表金鑰與網址
 Json = 'liquid-streamer-343612-20f96166f6a8.json'  # Json 的單引號內容請改成妳剛剛下載的那個金鑰
@@ -129,9 +130,18 @@ def handle_message(event):
         if re.match(str(event.message.type), "sticker"):
             sticker = StickerSendMessage(package_id=f"{event.message.package_id}", sticker_id=f"{event.message.sticker_id}")
         else:
+            age = 'Baby', 'Child', 'Young', 'Teenager', 'Adult'
+            counts = [21, 62, 10, 53, 77]
+            colors = ['gold', 'yellowgreen', 'lightcoral', 'lightskyblue', 'lavender']
+
+            patches, texts = plt.pie(counts, colors = colors, shadow = True, startangle = 90)
+            plt.legend(patches, age, loc = "best")
+            plt.axis('equal')
+            plt.tight_layout()
+            plt.savefig("chart01.jpg")
             CLIENT_ID = "37775a4995467d3"
-            PATH = "chart.jpg" #A Filepath to an image on your computer"
-            title = "my rabbit to imgur"
+            PATH = "chart01.jpg"
+            title = "my chart"
             im = pyimgur.Imgur(CLIENT_ID)
             uploaded_image = im.upload_image(PATH, title=title)
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"{uploaded_image.link}"))
