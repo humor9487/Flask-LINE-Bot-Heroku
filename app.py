@@ -14,6 +14,8 @@ from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage, FollowEvent, TemplateSendMessage\
     ,StickerSendMessage, URIAction, PostbackAction, ButtonsTemplate, PostbackEvent, DatetimePickerTemplateAction, ConfirmTemplate
 
+import pyimgur
+
 # 試算表金鑰與網址
 Json = 'liquid-streamer-343612-20f96166f6a8.json'  # Json 的單引號內容請改成妳剛剛下載的那個金鑰
 Url = ['https://spreadsheets.google.com/feeds']
@@ -127,7 +129,13 @@ def handle_message(event):
         if re.match(str(event.message.type), "sticker"):
             sticker = StickerSendMessage(package_id=f"{event.message.package_id}", sticker_id=f"{event.message.sticker_id}")
         else:
-            sticker = StickerSendMessage(package_id="11537",sticker_id="52002738")
+            CLIENT_ID = "37775a4995467d3"
+            PATH = "chart.jpg" #A Filepath to an image on your computer"
+            title = "my rabbit to imgur"
+            im = pyimgur.Imgur(CLIENT_ID)
+            uploaded_image = im.upload_image(PATH, title=title)
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"{uploaded_image.link}"))
+            #sticker = StickerSendMessage(package_id="11537",sticker_id="52002738")
         line_bot_api.reply_message(event.reply_token,[sticker, function_label])
 
 
